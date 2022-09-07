@@ -40,7 +40,7 @@ export const MainPage = () => {
   return (
     <Wrapper>
       <Header />
-      {showedBooks.map((item) => (
+      {showedBooks && showedBooks?.map((item) => (
         <BookItem
           title={item.title}
           author={item.author}

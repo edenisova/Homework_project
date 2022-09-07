@@ -1,5 +1,7 @@
+const initArray = JSON.parse(localStorage.getItem("state")) ? JSON.parse(localStorage.getItem("state")).books : []
+
 const initialState = {
-  books: [...JSON.parse(localStorage.getItem("state")).books],
+  books: [...initArray],
   filterName: "",
   filterStatus: '',
 };
