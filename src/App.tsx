@@ -5,7 +5,6 @@ import { MainPage } from "./components/MainPage";
 import { BookPage } from "./components/BookPage";
 import styled from 'styled-components';
 
-
 function App() {
   return (
     <div className="App">

@@ -1,13 +1,14 @@
 import React from "react";
 import styled from "styled-components";
 import { useDispatch } from "react-redux";
-import { filterBookByStatus } from "../actions";
+import { Flex } from "reflexbox";
+import { filterbyStatus } from "../reducer";
+import { locale } from "../locale";
 
-const MenuModalContainer = styled.div`
+const MenuModalContainer = styled(Flex)`
   position: absolute;
-  display: flex;
-  flex-direction: column;
   background-color: #f5c27c;
+  flex-direction: column;
 `;
 
 const MenuButton = styled.button`
@@ -20,27 +21,30 @@ const MenuButton = styled.button`
 
 export const MenuModal = () => {
   const dispatch = useDispatch();
+  const { willRead, readingComics, readComics } = locale.comicsStatus;
+  const { removeFilters } = locale.button;
+
   const handleClick = (event: any) => {
-    dispatch(filterBookByStatus(event.target.value));
+    dispatch(filterbyStatus(event.target.value));
   };
 
   const handleClearClick = () => {
-    dispatch(filterBookByStatus(""));
+    dispatch(filterbyStatus(""));
   };
 
   return (
     <MenuModalContainer>
       <MenuButton value="read" onClick={handleClick}>
-        Прочитанные книги
+        {readComics}
       </MenuButton>
       <MenuButton value="reading" onClick={handleClick}>
-        В процессе чтения
+        {readingComics}
       </MenuButton>
       <MenuButton value="willRead" onClick={handleClick}>
-        Хочу прочитать
+        {willRead}
       </MenuButton>
       <MenuButton value="clear" onClick={handleClearClick}>
-        Сбросить фильтры
+        {removeFilters}
       </MenuButton>
     </MenuModalContainer>
   );

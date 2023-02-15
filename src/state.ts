@@ -1,20 +1,7 @@
-interface Books {
-    title: string;
-    author: string;
-    description: string;
-    isLiked: boolean;
-    bookId: number;
-    isDisliked: boolean;
-    status: string;
-}
+import { AppState } from "./types";
 
-
-export type AppState = {
-    books: Array<Books>
-    filterName: string
-    filterStatus: string
-}
-
-export const getAllBooks = (state: AppState): Array<Books> => state.books
-export const getFilterName = (state: AppState) => state.filterName
-export const getFilterStatus = (state: AppState) => state.filterStatus
+export const getAllBooks = (state: AppState) => state.books;
+export const getComicsList = (state: AppState) => state.readComics;
+export const getComic = (state: AppState) => state.comic;
+export const getFilterName = (state: AppState) => state.filterName;
+export const getFilterStatus = (state: AppState) => state.filterStatus;

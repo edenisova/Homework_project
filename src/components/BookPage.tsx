@@ -1,18 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
+import { Box, Flex } from "reflexbox";
 import { useNavigate } from "react-router-dom";
-import { getAllBooks } from "../state";
+import { getComicsList } from "../state";
 import { useParams } from "react-router-dom";
-import { deleteBook, changeBookStatus } from "../actions";
+import { useComicsCharacters } from "../useComicsCharacters";
+import {
+  deleteBooks,
+  changeStatus,
+  resetChosenComic,
+} from "../reducer";
+import { locale } from "../locale";
+import { IMAGE_SIZES } from "../constants";
 
-const BookItemContainer = styled.div`
-  display: flex;
+const BookItemContainer = styled(Flex)`
+  font: "Verdana" sans-serif;
   justify-content: space-between;
   flex-direction: column;
-  font: "Verdana" sans-serif;
-  padding: 10px;
   color: #0b132b;
+  padding: 10px;
+`;
+
+const ComicsInfo = styled(Flex)`
+  padding: 20px 20px 20px 0;
+`;
+
+const ComicsCover = styled.img`
+  margin-right: 30px;
 `;
 
 const BookPageButton = styled.button`
@@ -24,73 +39,83 @@ const BookPageButton = styled.button`
   cursor: pointer;
 `;
 
-const BookTitle = styled.div`
-  font-size: 50px;
+const BookTitle = styled(Box)`
+  font-size: 40px;
+  margin-top: 20px;
   font-weight: bold;
   text-align: left;
-  margin-top: 20px;
 `;
 
-const BookAuthor = styled.div`
-  font-size: 30px;
-  text-align: left;
-`;
 const InputSelect = styled.select`
   margin-top: 20px;
   background-color: #82c0cc;
   width: 50%;
 `;
 
-const ButtonContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-`;
-
-const BookDescription = styled.div`
-  font-size: 20px;
-  margin-top: 20px;
-  width: 50%;
-  text-align: left;
-`;
+const {
+  comicsStatus: { willRead, readingComics, readComics },
+  button: { back, deleteComic },
+} = locale;
 
 export const BookPage = () => {
-  const params = useParams();
+  const { bookId } = useParams();
+  const readComicsList = useSelector(getComicsList);
+  const comicsItem = readComicsList.find((item) => item.id === Number(bookId));
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const BooksArr = useSelector(getAllBooks);
-  const bookById = BooksArr.find(
-    (book) => book.bookId === Number(params.bookId)
-  );
-  const [inputValue, setInputValue] = useState(bookById?.status);
+  const [inputValue, setInputValue] = useState(comicsItem?.status);
+
+  useEffect(() => {
+    if (bookId) {
+      //comicsItem = readComics.find(item => item.id === Number(bookId))
+    }
+    return () => {
+      //dispatch(resetChosenComic());
+    };
+  }, [bookId]);
+
   const handleBackButtonClick = () => {
     navigate("/");
   };
   const handleDeleteButtonClick = () => {
-    dispatch(deleteBook(params.bookId));
+    dispatch(deleteBooks(Number(bookId)));
     navigate("/");
   };
 
   const handleChange = (event: any) => {
     setInputValue(event.target.value);
-    dispatch(
-      changeBookStatus({ id: params.bookId, status: event.target.value })
-    );
+    dispatch(changeStatus({ id: Number(bookId), status: event.target.value }));
   };
   return (
     <BookItemContainer>
-      <ButtonContainer>
-        <BookPageButton onClick={handleBackButtonClick}>Назад</BookPageButton>
+      <Flex justifyContent="space-between">
+        <BookPageButton onClick={handleBackButtonClick}>{back}</BookPageButton>
         <BookPageButton onClick={handleDeleteButtonClick}>
-          Удалить
+          {deleteComic}
         </BookPageButton>
-      </ButtonContainer>
-      <BookTitle>{bookById?.title}</BookTitle>
-      <BookAuthor>{bookById?.author}</BookAuthor>
-      <BookDescription>{bookById?.description}</BookDescription>
+      </Flex>
+      <ComicsInfo>
+        <ComicsCover
+          src={`${comicsItem?.thumbnail?.path}/${IMAGE_SIZES.INCREDIBLE}.${comicsItem?.thumbnail?.extension}`}
+        />
+        <Flex flexDirection="column">
+          <BookTitle>{comicsItem?.title}</BookTitle>
+          {comicsItem?.creators?.items?.map((author) => {
+            return (
+              <Box textAlign="left" fontSize="20px">
+                {author.name} - {author.role}
+              </Box>
+            );
+          })}
+          <Box mt={20} width="50%" textAlign="left" fontSize="20px">
+            {comicsItem?.description}
+          </Box>
+        </Flex>
+      </ComicsInfo>
       <InputSelect name="status" value={inputValue} onChange={handleChange}>
-        <option value="read">Прочитанные</option>
-        <option value="reading">В процессе чтения</option>
-        <option value="willRead">Хочу прочитать</option>
+        <option value="read">{readComics}</option>
+        <option value="reading">{readingComics}</option>
+        <option value="willRead">{willRead}</option>
       </InputSelect>
     </BookItemContainer>
   );

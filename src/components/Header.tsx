@@ -1,15 +1,10 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useDispatch } from "react-redux";
-import { filterBookByName } from "../actions";
+import { Flex } from "reflexbox";
+import { filterByName } from "../reducer";
+import { locale } from "../locale";
 import { MenuModal } from "./MenuModal";
-
-const HeaderContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  background-color: #fcd29f;
-  height: 50px;
-`;
 
 const MenuButton = styled.button`
   width: 50px;
@@ -30,18 +25,23 @@ const Input = styled.input`
 export const Header = () => {
   const dispatch = useDispatch();
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const { menuLabel } = locale.commonLabels;
   const [inputState, setInputState] = useState("");
   const onMenuClick = () => {
     setModalIsOpen(!modalIsOpen);
   };
   const handleInputChange = (event: any) => {
     setInputState(event.target.value);
-    dispatch(filterBookByName(event.target.value));
+    dispatch(filterByName(event.target.value));
   };
   return (
-    <HeaderContainer>
+    <Flex
+      justifyContent="space-between"
+      height="50px"
+      backgroundColor="#fcd29f"
+    >
       <div>
-        <MenuButton onClick={onMenuClick}>Меню</MenuButton>
+        <MenuButton onClick={onMenuClick}>{menuLabel}</MenuButton>
         {modalIsOpen && <MenuModal />}
         <Input
           type="search"
@@ -50,6 +50,6 @@ export const Header = () => {
           onChange={handleInputChange}
         />
       </div>
-    </HeaderContainer>
+    </Flex>
   );
 };

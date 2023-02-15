@@ -1,12 +1,13 @@
 import React from "react";
 import styled from "styled-components";
 import { useDispatch } from "react-redux";
+import { Flex } from "reflexbox";
 import { Link } from "react-router-dom";
-import { likeBook, dislikeBook } from "../actions";
+import { changeLikes, changeDislikes } from "../reducer";
+import { locale } from "../locale";
 
 type BookItemProps = {
-  title: string;
-  author: string;
+  title?: string;
   isLiked: boolean;
   isDisliked: boolean;
   status: string;
@@ -21,10 +22,9 @@ type DislikeButtonProps = {
   isDisliked: boolean;
 };
 
-const BookItemContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
+const BookItemContainer = styled(Flex)`
   border-bottom: 1px solid #16697a;
+  justify-content: space-between;
   height: 50px;
 `;
 
@@ -34,6 +34,7 @@ const LikeButton = styled.button<LikeButtonProps>`
   height: 100%;
   border: none;
   width: 70px;
+  border-radius: 5px;
 `;
 
 const DislikeButton = styled.button<DislikeButtonProps>`
@@ -42,22 +43,23 @@ const DislikeButton = styled.button<DislikeButtonProps>`
   height: 100%;
   border: none;
   width: 70px;
+  border-radius: 5px;
 `;
 
 export const BookItem = ({
   title,
-  author,
   isLiked,
   isDisliked,
   bookId,
   status,
 }: BookItemProps) => {
   const dispatch = useDispatch();
+  const { likeButton, dislikeButton } = locale.button;
   const handleLikeClick = () => {
-    dispatch(likeBook(bookId));
+    dispatch(changeLikes(bookId));
   };
   const handleDislikeClick = () => {
-    dispatch(dislikeBook(bookId));
+    dispatch(changeDislikes(bookId));
   };
   return (
     <BookItemContainer>
@@ -66,7 +68,6 @@ export const BookItem = ({
         <Link to={`/${bookId}`} key={bookId}>
           {title}
         </Link>{" "}
-        {author}
       </div>
       <div>
         <LikeButton
@@ -74,17 +75,16 @@ export const BookItem = ({
           onClick={handleLikeClick}
           disabled={isDisliked}
         >
-          Liked
+          {likeButton}
         </LikeButton>
         <DislikeButton
           isDisliked={isDisliked}
           onClick={handleDislikeClick}
           disabled={isLiked}
         >
-          Disliked
+          {dislikeButton}
         </DislikeButton>
       </div>
-      
     </BookItemContainer>
   );
 };

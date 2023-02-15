@@ -1,55 +1,42 @@
-import React, { useState } from "react";
-import { useDispatch } from "react-redux";
-import { addBook } from "../actions";
+import React from "react";
+import { Box, Flex } from "reflexbox";
+import { connect } from "react-redux";
+import { addBooks } from "../reducer";
+import { locale } from "../locale";
+import { AppState, Comics, ReadComics } from "../types";
 import styled from "styled-components";
+import { Action, Dispatch } from "redux";
 
-const MenuModalContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  background-color: #fcd29f;
-  width: 300px;
-`;
-
-const ModalPageContainer = styled.div`
+const ModalPageContainer = styled(Flex)`
   position: fixed;
-  width: 100%;
-  height: 100%;
   z-index: 10;
   left: 0;
   top: 0;
   overflow: auto;
-  display: flex; 
-  align-items: center;
   justify-content: center;
-`;
-
-const InputData = styled.input`
-border: none;
+  align-items: center;
+  width: 100%;
+  height: 100%;
 `;
 
 const InputLabel = styled.label`
-align-self: start;
-margin-top: 10px;
-margin-bottom: 3px;
-`;
-
-const InputText = styled.textarea`
-  height: 100px;
-  border: none;
+  align-self: start;
+  margin-top: 10px;
+  margin-bottom: 3px;
 `;
 
 const CloseButton = styled.button`
   width: 65px;
   align-self: end;
-  background-color: #489FB5;
+  background-color: #489fb5;
   border: none;
   border-radius: 5px;
   cursor: pointer;
 `;
 
 const InputSelect = styled.select`
-background-color: #82C0CC;
-margin-bottom: 10px;
+  background-color: #82c0cc;
+  margin-bottom: 10px;
 `;
 
 const AddButton = styled.button`
@@ -58,85 +45,123 @@ const AddButton = styled.button`
   border: 1px solid #16697a;
   border-radius: 5px;
   margin-top: 10px;
+  cursor: pointer;
+`;
+
+const ErrorText = styled(Box)`
+  color: red;
+  font-size: 10px;
 `;
 
 type AddBookModalProps = {
+  booksArr: Array<Comics>;
+  comicsList: Array<ReadComics>;
+  addComicsToList: (addedComics: ReadComics) => void;
   modalIsOpen: boolean;
   onClose: (active: boolean) => void;
 };
 
-export const AddBookModal = ({ modalIsOpen, onClose }: AddBookModalProps) => {
-  const [bookInfo, setBookInfo] = useState({
-    title: "",
-    author: "",
-    bookId: Date.now(),
-    description: "",
-    isLiked: false,
-    isDisliked: false,
-    status: "",
-  });
-  const dispatch = useDispatch();
 
-  const handleChange = (event: any) => {
-    setBookInfo({ ...bookInfo, [event.target.name]: event.target.value });
-  };
+class AddBookModal extends React.Component<AddBookModalProps, any> {
+  constructor(props: AddBookModalProps) {
+    super(props);
+    this.state = {
+      bookInfo: {
+        comicsId: undefined,
+        isLiked: false,
+        isDisliked: false,
+        status: "willRead",
+      },
+      comics: [],
+      isError: false,
+    };
+  }
 
-  const addNewBook = () => {
-    dispatch(addBook(bookInfo));
-    onClose(false);
-  };
+  componentDidMount() {
+    this.setState({ comics: this.props.booksArr });
+  }
 
-  const handleClose = () => {
-    onClose(false);
+  handleChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    if (
+      event.target.name === "comicsId" &&
+      this.props.comicsList.find(
+        (item) => item.id === Number(event.target.value)
+      )
+    ) {
+      this.setState({ isError: true });
+    }
+    this.setState({
+      bookInfo: {
+        ...this.state.bookInfo,
+        [event.target.name]: event.target.value,
+      },
+    });
+  }
+
+  handleClose() {
+    this.props.onClose(false);
+  }
+
+  addNewBook() {
+    const addedComics = this.props.booksArr.find(
+      (item: Comics) => item.id === Number(this.state.bookInfo.comicsId)
+    );
+    this.props.addComicsToList({ ...addedComics, ...this.state.bookInfo });
+    this.props.onClose(false);
+  }
+
+  render() {
+    const { addComic, close } = locale.button;
+    const { willRead, readingComics, readComics } = locale.comicsStatus;
+    const { comicsLabel, statusLabel } = locale.commonLabels;
+    const { addedComicText } = locale.errors;
+    return (
+      <ModalPageContainer>
+        <Flex flexDirection="column" width="300px" backgroundColor="#fcd29f">
+          <CloseButton onClick={() => this.handleClose()}>{close}</CloseButton>
+          <InputLabel>{comicsLabel}</InputLabel>
+          <select
+            onChange={(event) => this.handleChange(event)}
+            name="comicsId"
+          >
+            {this.state.comics &&
+              this.state.comics.map((item: Comics, index: number) => {
+                return <option value={item.id}>{item?.title}</option>;
+              })}
+          </select>
+          {this.state.isError && <ErrorText>{addedComicText}</ErrorText>}
+          <InputLabel>{statusLabel}</InputLabel>
+          <InputSelect
+            name="status"
+            value={this.state.bookInfo.status}
+            onChange={(event) => this.handleChange(event)}
+          >
+            <option value="read">{readComics}</option>
+            <option value="reading">{readingComics}</option>
+            <option value="willRead">{willRead}</option>
+          </InputSelect>
+          <AddButton
+            onClick={() => this.addNewBook()}
+            disabled={this.state.isError}
+          >
+            {addComic}
+          </AddButton>
+        </Flex>
+      </ModalPageContainer>
+    );
+  }
+}
+
+function mapStateToProps(state: AppState) {
+  return { booksArr: state.books, comicsList: state.readComics };
+}
+
+function mapDispatchToProps(dispatch: Dispatch<Action>) {
+  return {
+    addComicsToList: (addedComics: ReadComics) => {
+      dispatch(addBooks(addedComics));
+    },
   };
-  return (
-    <ModalPageContainer>
-      <MenuModalContainer>
-        <CloseButton onClick={handleClose}>Закрыть</CloseButton>
-        <InputLabel>Название книги</InputLabel>
-        <InputData
-          type="text"
-          id="title"
-          name="title"
-          value={bookInfo.title}
-          onChange={handleChange}
-          placeholder="Название"
-        />
-        <InputLabel>Автор книги</InputLabel>
-        <InputData
-          type="text"
-          id="author"
-          name="author"
-          value={bookInfo.author}
-          onChange={handleChange}
-          placeholder="Автор"
-        />
-        <InputLabel>Описание книги</InputLabel>
-        <InputText
-          name="description"
-          value={bookInfo.description}
-          onChange={handleChange}
-          placeholder="Описание"
-        />
-        <InputLabel>Статус</InputLabel>
-        <InputSelect
-          name="status"
-          value={bookInfo.status}
-          onChange={handleChange}
-        >
-          <option value="read">Прочитанные</option>
-          <option value="reading">В процессе чтения</option>
-          <option value="willRead">Хочу прочитать</option>
-        </InputSelect>
-        <AddButton
-          onClick={addNewBook}
-          disabled={
-            !bookInfo.author && !bookInfo.description && !bookInfo.title
-          }
-        >
-          Добавить книгу
-        </AddButton>
-      </MenuModalContainer>
-    </ModalPageContainer>
-  );
-};
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddBookModal);

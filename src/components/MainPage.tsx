@@ -1,19 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { useSelector } from "react-redux";
-import { getAllBooks, getFilterName, getFilterStatus } from "../state";
+import { useSelector, useDispatch } from "react-redux";
+import { Box } from "reflexbox";
+import {
+  getAllBooks,
+  getFilterName,
+  getFilterStatus,
+  getComicsList,
+} from "../state";
 import { BookItem } from "./BookItem";
 import { Header } from "./Header";
-import { AddBookModal } from "./AddBookModal";
+import { getBooks } from "../reducer";
+import { locale } from "../locale";
+import AddBookModal from "./AddBookModal";
 
-const Wrapper = styled.div`
-  background: #ede7e3;
+const Wrapper = styled(Box)`
   position: relative;
-  height: 100vh;
+  height: 100%;
 `;
 
 const AddBookButton = styled.button`
   height: 50px;
+  border-radius: 5px;
   background-color: #82c0cc;
   border: none;
   cursor: pointer;
@@ -21,17 +29,27 @@ const AddBookButton = styled.button`
 
 export const MainPage = () => {
   const BooksArr = useSelector(getAllBooks);
+  const comicsArr = useSelector(getComicsList);
   const filterTitle = useSelector(getFilterName);
   const filterStatus = useSelector(getFilterStatus);
+  const dispatch = useDispatch();
   const [modalIsOpen, setModalIsOpen] = useState(false);
+  const { addComic } = locale.button;
+
+  useEffect(() => {
+    if (!BooksArr.length) {
+      dispatch(getBooks());
+    }
+  }, []);
+
   const onMenuClick = () => {
     setModalIsOpen(true);
   };
   let showedBooks = filterTitle
-    ? BooksArr.filter((book) => {
-        return book.title.toLowerCase().includes(filterTitle);
+    ? comicsArr.filter((book) => {
+        return book.title?.toLowerCase().includes(filterTitle);
       })
-    : BooksArr;
+    : comicsArr;
   showedBooks = filterStatus
     ? showedBooks.filter((book) => {
         return book.status === filterStatus;
@@ -40,17 +58,17 @@ export const MainPage = () => {
   return (
     <Wrapper>
       <Header />
-      {showedBooks && showedBooks?.map((item) => (
-        <BookItem
-          title={item.title}
-          author={item.author}
-          isLiked={item.isLiked}
-          isDisliked={item.isDisliked}
-          status={item.status}
-          bookId={item.bookId}
-        />
-      ))}
-      <AddBookButton onClick={onMenuClick}>Добавить книгу</AddBookButton>
+      {showedBooks &&
+        showedBooks?.map((item) => (
+          <BookItem
+            title={item.title}
+            isLiked={item.isLiked}
+            isDisliked={item.isDisliked}
+            status={item.status}
+            bookId={item.id}
+          />
+        ))}
+      <AddBookButton onClick={onMenuClick}>{addComic}</AddBookButton>
       {modalIsOpen && (
         <AddBookModal modalIsOpen={modalIsOpen} onClose={setModalIsOpen} />
       )}
